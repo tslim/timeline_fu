@@ -21,8 +21,22 @@ module TimelineFu
             memo
           end
           create_options[:event_type] = event_type.to_s
+          
+          # Cache actor/subjects
+          create_options[:actor_data]             = create_options[:actor].to_yaml unless create_options[:actor].blank?
+          create_options[:subject_data]           = create_options[:subject].to_yaml unless create_options[:subject].blank?
+          create_options[:secondary_subject_data] = create_options[:secondary_subject].to_yaml unless create_options[:secondary_subject].blank?
 
-          Delayed::Job.enqueue TimelineFuJob.new(create_options)
+          # Load timeline_fu.yml if found
+          settings = { "use_delayed_job" => "true" }
+          config_path = File.join(Rails.root, "config", "timeline_fu.yml")
+          settings = YAML::load(File.open(config_path))[Rails.env] if File.exists?(config_path)
+                              
+          if settings["use_delayed_job"]
+            Delayed::Job.enqueue TimelineFuJob.new(create_options)
+          else
+            TimelineEvent.create!(create_options)
+          end
         end
 
         send(:"after_#{opts[:on]}", method_name, :if => opts[:if])

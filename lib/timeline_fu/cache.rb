@@ -11,11 +11,11 @@ module TimelineFu::Cache
   end
   
   def cached_secondary_subject
-    @_cached_secondary_subject ||=  get_cached_object(:secondary_subject)
+    @_cached_secondary_subject ||= get_cached_object(:secondary_subject)
   end
   
   def get_cached_object(obj)
-    return YAML::load(self["#{obj}_data"])
+    return YAML::load(self["#{obj}_data"]) 
   end
   
 end
